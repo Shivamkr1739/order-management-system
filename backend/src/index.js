@@ -1,6 +1,22 @@
-(async () => {
+const express = require('express');
+const cors = require('cors');
+
+const pool = require('./config/db');
+
+const ordersRoutes = require('./routes/orders');
+const customersRoutes = require('./routes/customers');
+const productsRoutes = require('./routes/products');
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// ✅ Safe table creation AFTER server starts
+app.listen(process.env.PORT || 3001, async () => {
+  console.log(`Server running`);
+
   try {
-    // ✅ Orders Table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
@@ -11,7 +27,6 @@
       )
     `);
 
-    // ✅ Customers Table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS customers (
         id SERIAL PRIMARY KEY,
@@ -21,7 +36,6 @@
       )
     `);
 
-    // ✅ Products Table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
@@ -35,4 +49,13 @@
   } catch (err) {
     console.error("Table error ❌", err);
   }
-})();
+});
+
+// Routes
+app.use('/api/orders', ordersRoutes);
+app.use('/api/customers', customersRoutes);
+app.use('/api/products', productsRoutes);
+
+app.get('/', (req, res) => {
+  res.send('API running...');
+});
